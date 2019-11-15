@@ -1,11 +1,11 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const Users = require('./authModel');
 
 router.post('/register', (req, res) => {
   let user = req.body;
 
-  if(req.body){
-    const hash = bcrypt.hashSync(user.password, 8);
+    const hash = bcrypt.hashSync(user.password, 10);
     user.password = hash;
   
     Users.add(user)
@@ -15,11 +15,9 @@ router.post('/register', (req, res) => {
       .catch(error => {
         res.status(500).json(error);
       });
-  } else {
-    res.status(400).json({ 
-      message: "please add user info"
-    })
-  }
+    // res.status(400).json({ 
+    //   message: "please add user info"
+    // })
 });
 
 router.post('/login', (req, res) => {
@@ -29,10 +27,8 @@ router.post('/login', (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
-        // produce a token
         const token = getJwtToken(user);
 
-        //send the token to the client
         res.status(200).json({
           message: `Welcome ${user.username}!`,
           token
@@ -45,5 +41,21 @@ router.post('/login', (req, res) => {
       res.status(500).json(error);
     });
 });
+
+function getJwtToken(user) {
+  console.log('SHOULD HAVE A DEP', user)
+const payload = {
+  user
+  // role: "student" // this will probably come from db
+};
+
+const secret = process.env.JWT_SECRET || "is it secret";
+
+const options = {
+  expiresIn: '1d'
+}
+
+return jwt.sign(payload, secret, options);
+}
 
 module.exports = router;
