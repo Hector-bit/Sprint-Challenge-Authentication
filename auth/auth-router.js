@@ -1,5 +1,7 @@
 const router = require('express').Router();
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 const Users = require('./authModel');
 
 router.post('/register', (req, res) => {
@@ -28,7 +30,7 @@ router.post('/login', (req, res) => {
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
         const token = getJwtToken(user);
-
+        console.log('THIS IS not THE USER', password)
         res.status(200).json({
           message: `Welcome ${user.username}!`,
           token
@@ -43,10 +45,8 @@ router.post('/login', (req, res) => {
 });
 
 function getJwtToken(user) {
-  console.log('SHOULD HAVE A DEP', user)
 const payload = {
   user
-  // role: "student" // this will probably come from db
 };
 
 const secret = process.env.JWT_SECRET || "is it secret";
